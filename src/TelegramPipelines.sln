@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramPipelines", "TelegramPipelines\TelegramPipelines.csproj", "{E606B7BA-A81B-42F2-9B2B-4492633411E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramPipelines.RedisLocalStorage.IntegrationTests", "TelegramPipelines.RedisLocalStorage.IntegrationTests\TelegramPipelines.RedisLocalStorage.IntegrationTests.csproj", "{C12A4DF0-E42E-43F4-9B89-3A4F06A49ACE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramPipelines.RedisLocalStorage", "TelegramPipelines.RedisLocalStorage\TelegramPipelines.RedisLocalStorage.csproj", "{474856F3-DD56-4ECA-B043-20FCAAFA0F12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramPipelines.Abstractions", "TelegramPipelines.Abstractions\TelegramPipelines.Abstractions.csproj", "{7903C996-05D3-4FA9-B076-B1A65E22DB94}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E606B7BA-A81B-42F2-9B2B-4492633411E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E606B7BA-A81B-42F2-9B2B-4492633411E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E606B7BA-A81B-42F2-9B2B-4492633411E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E606B7BA-A81B-42F2-9B2B-4492633411E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C12A4DF0-E42E-43F4-9B89-3A4F06A49ACE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C12A4DF0-E42E-43F4-9B89-3A4F06A49ACE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C12A4DF0-E42E-43F4-9B89-3A4F06A49ACE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C12A4DF0-E42E-43F4-9B89-3A4F06A49ACE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{474856F3-DD56-4ECA-B043-20FCAAFA0F12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{474856F3-DD56-4ECA-B043-20FCAAFA0F12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{474856F3-DD56-4ECA-B043-20FCAAFA0F12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{474856F3-DD56-4ECA-B043-20FCAAFA0F12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7903C996-05D3-4FA9-B076-B1A65E22DB94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7903C996-05D3-4FA9-B076-B1A65E22DB94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7903C996-05D3-4FA9-B076-B1A65E22DB94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7903C996-05D3-4FA9-B076-B1A65E22DB94}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
