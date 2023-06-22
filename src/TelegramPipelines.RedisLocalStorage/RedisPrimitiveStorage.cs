@@ -4,7 +4,7 @@ using StackExchange.Redis.Extensions.Core.Abstractions;
 
 namespace TelegramPipelines.RedisStorageMaster;
 
-public class RedisPrimitiveStorage
+internal class RedisPrimitiveStorage
 {
     private readonly IRedisDatabase _redis;
     public string StorageIdentifier { get; }

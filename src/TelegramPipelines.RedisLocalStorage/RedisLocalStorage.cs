@@ -10,11 +10,20 @@ public class RedisLocalStorage : ILocalStorage
     private readonly RedisStorageRepository _repository;
     private readonly IRedisClientFactory _redisFactory;
 
-    public RedisLocalStorage(RedisPrimitiveStorage primitiveStorage, RedisStorageRepository repository, IRedisClientFactory redisFactory)
+    private RedisLocalStorage(RedisPrimitiveStorage primitiveStorage, RedisStorageRepository repository, IRedisClientFactory redisFactory)
     {
         _primitiveStorage = primitiveStorage;
         _repository = repository;
         _redisFactory = redisFactory;
+    }
+
+    public static async Task<RedisLocalStorage> Create(IRedisClientFactory redisFactory, string storageIdentifier)
+    {
+        IRedisDatabase redis = redisFactory.GetRedisDatabase();
+        var primitiveStorage = await RedisPrimitiveStorage.Create(redis, storageIdentifier);
+        var storageRepository = new RedisStorageRepository(redis);
+
+        return new RedisLocalStorage(primitiveStorage, storageRepository, redisFactory);
     }
     
     public async Task Save<T>(string key, T o) where T : class

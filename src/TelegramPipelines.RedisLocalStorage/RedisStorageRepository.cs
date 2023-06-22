@@ -2,7 +2,7 @@
 
 namespace TelegramPipelines.RedisStorageMaster;
 
-public class RedisStorageRepository
+internal class RedisStorageRepository
 {
     private readonly IRedisDatabase _redis;
     private const string StorageChildrenKey = "__children";
