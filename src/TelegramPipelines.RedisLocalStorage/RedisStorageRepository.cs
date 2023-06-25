@@ -1,6 +1,6 @@
 ﻿using StackExchange.Redis.Extensions.Core.Abstractions;
 
-namespace TelegramPipelines.RedisStorageMaster;
+namespace TelegramPipelines.RedisLocalStorage;
 
 internal class RedisStorageRepository
 {

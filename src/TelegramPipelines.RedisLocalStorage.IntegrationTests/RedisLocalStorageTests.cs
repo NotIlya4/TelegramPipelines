@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using TelegramPipelines.Abstractions;
-using TelegramPipelines.RedisStorageMaster;
 
 namespace TelegramPipelines.UnitTests;
 
@@ -12,7 +11,7 @@ public class RedisLocalStorageTests : IDisposable
     private readonly IRedisDatabase _redis;
     private readonly IServiceScope _scope;
     private readonly IRedisClientFactory _redisFactory;
-    private readonly RedisLocalStorage _localStorage;
+    private readonly RedisLocalStorage.RedisRecursiveLocalStorage _recursiveLocalStorage;
     private const string Identity = "test";
 
     public RedisLocalStorageTests(AppFixture fixture)
@@ -20,14 +19,14 @@ public class RedisLocalStorageTests : IDisposable
         _scope = fixture.Services.CreateScope();
         _redis = _scope.ServiceProvider.GetRequiredService<IRedisDatabase>();
         _redisFactory = _scope.ServiceProvider.GetRequiredService<IRedisClientFactory>();
-        _localStorage = RedisLocalStorage.Create(_redisFactory, Identity).GetAwaiter().GetResult();
+        _recursiveLocalStorage = RedisLocalStorage.RedisRecursiveLocalStorage.Create(_redisFactory, Identity).GetAwaiter().GetResult();
     }
 
     [Fact]
     public async Task Save_EmptyRedisStorage_RedisStorageWithValue()
     {
         TestClass expect = new TestClass(10, "asd");
-        await _localStorage.Save("asd", expect);
+        await _recursiveLocalStorage.Save("asd", expect);
         TestClass? result = (await _redis.GetAsync<JObject>(Identity))?["asd"]?.ToObject<TestClass>();
 
         Assert.Equal(expect, result);
@@ -37,8 +36,8 @@ public class RedisLocalStorageTests : IDisposable
     public async Task Get_RedisStorageWithValue_ReturnThatValue()
     {
         TestClass expect = new TestClass(10, "asd");
-        await _localStorage.Save("asd", expect);
-        TestClass? result = await _localStorage.Get<TestClass>("asd");
+        await _recursiveLocalStorage.Save("asd", expect);
+        TestClass? result = await _recursiveLocalStorage.Get<TestClass>("asd");
 
         Assert.Equal(expect, result);
     }
@@ -46,9 +45,9 @@ public class RedisLocalStorageTests : IDisposable
     [Fact]
     public async Task Remove_RedisWithValue_RemoveThatValue()
     {
-        await _localStorage.Save("asd", new TestClass(10, "asd"));
-        await _localStorage.Remove("asd");
-        TestClass? result = await _localStorage.Get<TestClass>("asd");
+        await _recursiveLocalStorage.Save("asd", new TestClass(10, "asd"));
+        await _recursiveLocalStorage.Remove("asd");
+        TestClass? result = await _recursiveLocalStorage.Get<TestClass>("asd");
 
         Assert.Null(result);
     }
@@ -60,7 +59,7 @@ public class RedisLocalStorageTests : IDisposable
         {
             ["__keep"] = "keep"
         };
-        await RedisLocalStorage.Create(_redisFactory, "asd");
+        await RedisLocalStorage.RedisRecursiveLocalStorage.Create(_redisFactory, "asd");
         JObject? result = await _redis.GetAsync<JObject>("asd");
 
         Assert.Equal(expect, result);
@@ -70,8 +69,8 @@ public class RedisLocalStorageTests : IDisposable
     public async Task CreateChild_EmptyStorage_AddChildrenPropertyInStorage()
     {
         var expect = new List<string>() { "a", "b" };
-        await _localStorage.CreateChildren("a");
-        await _localStorage.CreateChildren("b");
+        await _recursiveLocalStorage.GetOrCreateChild("a");
+        await _recursiveLocalStorage.GetOrCreateChild("b");
 
         var result = (await _redis.GetAsync<JObject>(Identity))?["__children"]?.ToObject<List<string>>();
 
@@ -81,12 +80,12 @@ public class RedisLocalStorageTests : IDisposable
     [Fact]
     public async Task RemoveStorageAndAllItsChildren_StorageGraph_RemoveWholeGraph()
     {
-        ILocalStorage child1 = await _localStorage.CreateChildren("child1");
-        ILocalStorage child2 = await _localStorage.CreateChildren("child2");
-        await child1.CreateChildren("child1child1");
-        await child1.CreateChildren("child1child2");
+        IRecursiveLocalStorage child1 = await _recursiveLocalStorage.GetOrCreateChild("child1");
+        IRecursiveLocalStorage child2 = await _recursiveLocalStorage.GetOrCreateChild("child2");
+        await child1.GetOrCreateChild("child1child1");
+        await child1.GetOrCreateChild("child1child2");
 
-        await _localStorage.RemoveStorageAndAllItsChildren();
+        await _recursiveLocalStorage.RemoveStorageAndAllItsChildren();
         
         Assert.False(await _redis.ExistsAsync(Identity));
         Assert.False(await _redis.ExistsAsync("child1"));

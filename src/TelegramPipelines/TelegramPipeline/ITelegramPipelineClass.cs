@@ -1,10 +1,6 @@
-﻿using OneOf;
-
-namespace Core.TelegramFramework.TelegramPipeline;
+﻿namespace TelegramPipelines.TelegramPipeline;
 
 public interface ITelegramPipelineClass<TPipelineReturn>
 {
-    Task<OneOf<TPipelineReturn, NotFinished>> Handle(ITelegramPipelineContext<TPipelineReturn> context);
+    Task<TPipelineReturn?> Handle(TelegramPipelineContext context);
 }
-
-public delegate Task<OneOf<TPipelineReturn, NotFinished>>TelegramPipelineDelegate<TPipelineReturn>(ITelegramPipelineContext<TPipelineReturn> context);

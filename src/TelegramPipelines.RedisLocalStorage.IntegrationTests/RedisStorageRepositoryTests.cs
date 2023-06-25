@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis.Extensions.Core.Abstractions;
-using TelegramPipelines.RedisStorageMaster;
+using TelegramPipelines.RedisLocalStorage;
 
 namespace TelegramPipelines.UnitTests;
 

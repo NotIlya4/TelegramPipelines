@@ -1,29 +1,28 @@
-﻿using Newtonsoft.Json.Linq;
-using StackExchange.Redis.Extensions.Core.Abstractions;
+﻿using StackExchange.Redis.Extensions.Core.Abstractions;
 using TelegramPipelines.Abstractions;
 
-namespace TelegramPipelines.RedisStorageMaster;
+namespace TelegramPipelines.RedisLocalStorage;
 
-public class RedisLocalStorage : ILocalStorage
+public class RedisRecursiveLocalStorage : IRecursiveLocalStorage
 {
     private readonly RedisPrimitiveStorage _primitiveStorage;
     private readonly RedisStorageRepository _repository;
     private readonly IRedisClientFactory _redisFactory;
 
-    private RedisLocalStorage(RedisPrimitiveStorage primitiveStorage, RedisStorageRepository repository, IRedisClientFactory redisFactory)
+    private RedisRecursiveLocalStorage(RedisPrimitiveStorage primitiveStorage, RedisStorageRepository repository, IRedisClientFactory redisFactory)
     {
         _primitiveStorage = primitiveStorage;
         _repository = repository;
         _redisFactory = redisFactory;
     }
 
-    public static async Task<RedisLocalStorage> Create(IRedisClientFactory redisFactory, string storageIdentifier)
+    public static async Task<RedisRecursiveLocalStorage> Create(IRedisClientFactory redisFactory, string storageIdentifier)
     {
         IRedisDatabase redis = redisFactory.GetRedisDatabase();
         var primitiveStorage = await RedisPrimitiveStorage.Create(redis, storageIdentifier);
         var storageRepository = new RedisStorageRepository(redis);
 
-        return new RedisLocalStorage(primitiveStorage, storageRepository, redisFactory);
+        return new RedisRecursiveLocalStorage(primitiveStorage, storageRepository, redisFactory);
     }
     
     public async Task Save<T>(string key, T o) where T : class
@@ -41,12 +40,14 @@ public class RedisLocalStorage : ILocalStorage
         await _primitiveStorage.Remove(key);
     }
 
+    public string StorageIdentity => _primitiveStorage.StorageIdentifier;
+
     public async Task RemoveStorageAndAllItsChildren()
     {
         await _repository.RemoveStorageAndAllItsChildren(_primitiveStorage.StorageIdentifier);
     }
 
-    public async Task<ILocalStorage> CreateChildren(string childStorageIdentifier)
+    public async Task<IRecursiveLocalStorage> GetOrCreateChild(string childStorageIdentifier)
     {
         await _repository.CreateChildStorage(_primitiveStorage.StorageIdentifier, childStorageIdentifier);
 
@@ -55,6 +56,6 @@ public class RedisLocalStorage : ILocalStorage
             await RedisPrimitiveStorage.Create(childRedisDatabase, childStorageIdentifier);
         var childStorageRepository = new RedisStorageRepository(childRedisDatabase);
 
-        return new RedisLocalStorage(childPrimitiveStorage, childStorageRepository, _redisFactory);
+        return new RedisRecursiveLocalStorage(childPrimitiveStorage, childStorageRepository, _redisFactory);
     }
 }

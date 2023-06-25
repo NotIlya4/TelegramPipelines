@@ -16,4 +16,8 @@
       <PackageReference Include="Telegram.Bot" Version="19.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\TelegramPipelines.Abstractions\TelegramPipelines.Abstractions.csproj" />
+    </ItemGroup>
+
 </Project>

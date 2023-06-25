@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NotIlya.Extensions.Redis;
-using Serilog;
 
 namespace TelegramPipelines.UnitTests;
 

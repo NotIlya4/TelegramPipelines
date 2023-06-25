@@ -1,45 +1,45 @@
-﻿using Core.TelegramFramework.NestedPipeline;
-using Core.TelegramFramework.SimpleTelegramClient;
-using Core.TelegramFramework.TelegramPipeline;
-using OneOf;
+﻿using Telegram.Bot;
+using Telegram.Bot.Types;
+using TelegramPipelines.Abstractions;
+using TelegramPipelines.LocalStorage;
+using TelegramPipelines.NestedPipeline;
+using TelegramPipelines.TelegramPipeline;
 
-namespace Core.TelegramFramework.StatefulPipeline;
+namespace TelegramPipelines.StatefulPipeline;
 
-public record StatefulTelegramPipeline<TPipelineReturn> : IPipelineExecutor<TPipelineReturn>
+public record StatefulTelegramPipeline<TPipelineReturn> : IWrappedTelegramPipeline<TPipelineReturn>
 {
-    public ISimpleTelegramClient Bot { get; }
-    public UserRequest UserRequest { get; }
-    public IPipelineLocalStorageMaster StorageMaster { get; }
+    public TelegramPipelineIdentity Identity { get; }
     public TelegramPipelineDelegate<TPipelineReturn> Pipeline { get; }
-    public NestedPipelineFactory<TPipelineReturn> NestedPipelineFactory { get; }
-    public TelegramPipelineContext<TPipelineReturn> PipelineContext => new(Bot, UserRequest, Storage, NestedPipelineFactory);
-    public IPipelineLocalStorage Storage => StorageMaster.ToPipelineLocalStorage();
+    public PipelineLocalStorage Storage { get; }
+    public TelegramRequestContext TelegramRequestContext { get; }
+    public NestedPipelineExecutor<TPipelineReturn> NestedPipelineExecutor { get; }
 
-    public StatefulTelegramPipeline(ISimpleTelegramClient bot, UserRequest userRequest, IPipelineLocalStorageMaster storageMaster, TelegramPipelineDelegate<TPipelineReturn> pipeline)
+    public StatefulTelegramPipeline(TelegramPipelineIdentity identity, TelegramPipelineDelegate<TPipelineReturn> pipeline, PipelineLocalStorage storage, TelegramRequestContext telegramRequestContext)
     {
-        Bot = bot;
-        UserRequest = userRequest;
-        StorageMaster = storageMaster;
+        Identity = identity;
         Pipeline = pipeline;
-        NestedPipelineFactory = new NestedPipelineFactory<TPipelineReturn>(this);
+        Storage = storage;
+        TelegramRequestContext = telegramRequestContext;
+        NestedPipelineExecutor = new NestedPipelineExecutor<TPipelineReturn>(this);
     }
 
-    public async Task<OneOf<TPipelineReturn, NotFinished>> Execute()
+    public async Task<TPipelineReturn?> Execute()
     {
-        OneOf<TPipelineReturn, NotFinished> result;
+        TPipelineReturn? result;
         try
         {
-            result = await Pipeline(PipelineContext);
+            result = await Pipeline(new TelegramPipelineContext(Identity, Storage, NestedPipelineExecutor, TelegramRequestContext));
         }
         catch (Exception)
         {
-            await StorageMaster.Clear();
+            await Storage.RemoveStorageAndAllItsChildren();
             throw;
         }
 
-        if (result.IsT1)
+        if (result is null)
         {
-            await StorageMaster.Clear();
+            await Storage.RemoveStorageAndAllItsChildren();
         }
 
         return result;
@@ -47,18 +47,20 @@ public record StatefulTelegramPipeline<TPipelineReturn> : IPipelineExecutor<TPip
     
     public async Task Abort()
     {
-        await StorageMaster.Clear();
+        await Storage.RemoveStorageAndAllItsChildren();
     }
 
-    public StatefulTelegramPipeline<TPipelineReturn> With(IPipelineLocalStorageMaster storageMaster)
+    public async Task<StatefulTelegramPipeline<TChildReturn>> CreateChild<TChildReturn>(string childPipelineName,
+        TelegramPipelineDelegate<TChildReturn> pipeline)
     {
-        return new StatefulTelegramPipeline<TPipelineReturn>(
-            Bot, UserRequest, storageMaster, Pipeline);
+        TelegramPipelineIdentity childIdentity = Identity.CreateChild(childPipelineName);
+        PipelineLocalStorage childStorage = await Storage.CreateChild(childIdentity);
+        return new StatefulTelegramPipeline<TChildReturn>(childIdentity, pipeline, childStorage, TelegramRequestContext);
     }
 }
 
-public interface IPipelineExecutor<TPipelineReturn>
+public interface IWrappedTelegramPipeline<TPipelineReturn>
 {
-    Task<OneOf<TPipelineReturn, NotFinished>> Execute();
+    Task<TPipelineReturn?> Execute();
     Task Abort();
 }

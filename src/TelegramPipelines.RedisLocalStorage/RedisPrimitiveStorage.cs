@@ -1,8 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
-using StackExchange.Redis;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 
-namespace TelegramPipelines.RedisStorageMaster;
+namespace TelegramPipelines.RedisLocalStorage;
 
 internal class RedisPrimitiveStorage
 {
