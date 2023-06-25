@@ -1,4 +1,4 @@
-﻿namespace TelegramPipelines;
+﻿namespace TelegramPipelines.Abstractions;
 
 public record TelegramPipelineIdentity(long ChatId, IReadOnlyList<string> Root)
 {

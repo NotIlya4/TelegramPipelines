@@ -2,5 +2,5 @@
 
 public interface ITelegramPipelineClass<TPipelineReturn>
 {
-    Task<TPipelineReturn?> Handle(TelegramPipelineContext context);
+    Task<TPipelineReturn?> Execute(TelegramPipelineContext context);
 }

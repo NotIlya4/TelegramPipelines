@@ -1,7 +1,6 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
 using TelegramPipelines.Abstractions;
-using TelegramPipelines.LocalStorage;
 using TelegramPipelines.NestedPipeline;
 using TelegramPipelines.TelegramPipeline;
 
@@ -11,16 +10,18 @@ public record StatefulTelegramPipeline<TPipelineReturn> : IWrappedTelegramPipeli
 {
     public TelegramPipelineIdentity Identity { get; }
     public TelegramPipelineDelegate<TPipelineReturn> Pipeline { get; }
-    public PipelineLocalStorage Storage { get; }
+    public IRecursiveLocalStorage Storage { get; }
     public TelegramRequestContext TelegramRequestContext { get; }
     public NestedPipelineExecutor<TPipelineReturn> NestedPipelineExecutor { get; }
+    private readonly IRecursiveLocalStorageFactory _storageFactory;
 
-    public StatefulTelegramPipeline(TelegramPipelineIdentity identity, TelegramPipelineDelegate<TPipelineReturn> pipeline, PipelineLocalStorage storage, TelegramRequestContext telegramRequestContext)
+    public StatefulTelegramPipeline(TelegramPipelineIdentity identity, TelegramPipelineDelegate<TPipelineReturn> pipeline, IRecursiveLocalStorage storage, TelegramRequestContext telegramRequestContext, IRecursiveLocalStorageFactory storageFactory)
     {
         Identity = identity;
         Pipeline = pipeline;
         Storage = storage;
         TelegramRequestContext = telegramRequestContext;
+        _storageFactory = storageFactory;
         NestedPipelineExecutor = new NestedPipelineExecutor<TPipelineReturn>(this);
     }
 
@@ -33,13 +34,13 @@ public record StatefulTelegramPipeline<TPipelineReturn> : IWrappedTelegramPipeli
         }
         catch (Exception)
         {
-            await Storage.RemoveStorageAndAllItsChildren();
+            await Storage.ClearStorageAndAllItsChildren();
             throw;
         }
 
         if (result is null)
         {
-            await Storage.RemoveStorageAndAllItsChildren();
+            await Storage.ClearStorageAndAllItsChildren();
         }
 
         return result;
@@ -47,15 +48,16 @@ public record StatefulTelegramPipeline<TPipelineReturn> : IWrappedTelegramPipeli
     
     public async Task Abort()
     {
-        await Storage.RemoveStorageAndAllItsChildren();
+        await Storage.ClearStorageAndAllItsChildren();
     }
 
     public async Task<StatefulTelegramPipeline<TChildReturn>> CreateChild<TChildReturn>(string childPipelineName,
         TelegramPipelineDelegate<TChildReturn> pipeline)
     {
         TelegramPipelineIdentity childIdentity = Identity.CreateChild(childPipelineName);
-        PipelineLocalStorage childStorage = await Storage.CreateChild(childIdentity);
-        return new StatefulTelegramPipeline<TChildReturn>(childIdentity, pipeline, childStorage, TelegramRequestContext);
+        IRecursiveLocalStorage childStorage = await _storageFactory.GetOrCreateStorage(childIdentity);
+        await Storage.AddChildStorage(childStorage);
+        return new StatefulTelegramPipeline<TChildReturn>(childIdentity, pipeline, childStorage, TelegramRequestContext, _storageFactory);
     }
 }
 

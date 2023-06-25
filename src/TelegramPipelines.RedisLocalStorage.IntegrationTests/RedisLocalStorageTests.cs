@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
+using StackExchange.Redis;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using TelegramPipelines.Abstractions;
+using TelegramPipelines.RedisLocalStorage;
 
 namespace TelegramPipelines.UnitTests;
 
@@ -10,24 +12,24 @@ public class RedisLocalStorageTests : IDisposable
 {
     private readonly IRedisDatabase _redis;
     private readonly IServiceScope _scope;
-    private readonly IRedisClientFactory _redisFactory;
-    private readonly RedisLocalStorage.RedisRecursiveLocalStorage _recursiveLocalStorage;
-    private const string Identity = "test";
+    private readonly RedisRecursiveLocalStorage _storage;
+    private readonly RedisRecursiveLocalStorageFactory _storageFactory;
+    private readonly TelegramPipelineIdentity _identity = new(100, new [] { "main" });
 
     public RedisLocalStorageTests(AppFixture fixture)
     {
         _scope = fixture.Services.CreateScope();
         _redis = _scope.ServiceProvider.GetRequiredService<IRedisDatabase>();
-        _redisFactory = _scope.ServiceProvider.GetRequiredService<IRedisClientFactory>();
-        _recursiveLocalStorage = RedisLocalStorage.RedisRecursiveLocalStorage.Create(_redisFactory, Identity).GetAwaiter().GetResult();
+        _storage = RedisRecursiveLocalStorage.Create(_redis, _identity).GetAwaiter().GetResult();
+        _storageFactory = new RedisRecursiveLocalStorageFactory(_scope.ServiceProvider.GetRequiredService<IRedisClientFactory>());
     }
 
     [Fact]
     public async Task Save_EmptyRedisStorage_RedisStorageWithValue()
     {
         TestClass expect = new TestClass(10, "asd");
-        await _recursiveLocalStorage.Save("asd", expect);
-        TestClass? result = (await _redis.GetAsync<JObject>(Identity))?["asd"]?.ToObject<TestClass>();
+        await _storage.Save("asd", expect);
+        TestClass? result = (await _redis.GetAsync<JObject>(_identity.ColonConcat()))?["asd"]?.ToObject<TestClass>();
 
         Assert.Equal(expect, result);
     }
@@ -36,8 +38,8 @@ public class RedisLocalStorageTests : IDisposable
     public async Task Get_RedisStorageWithValue_ReturnThatValue()
     {
         TestClass expect = new TestClass(10, "asd");
-        await _recursiveLocalStorage.Save("asd", expect);
-        TestClass? result = await _recursiveLocalStorage.Get<TestClass>("asd");
+        await _storage.Save("asd", expect);
+        TestClass? result = await _storage.Get<TestClass>("asd");
 
         Assert.Equal(expect, result);
     }
@@ -45,9 +47,9 @@ public class RedisLocalStorageTests : IDisposable
     [Fact]
     public async Task Remove_RedisWithValue_RemoveThatValue()
     {
-        await _recursiveLocalStorage.Save("asd", new TestClass(10, "asd"));
-        await _recursiveLocalStorage.Remove("asd");
-        TestClass? result = await _recursiveLocalStorage.Get<TestClass>("asd");
+        await _storage.Save("asd", new TestClass(10, "asd"));
+        await _storage.Remove("asd");
+        TestClass? result = await _storage.Get<TestClass>("asd");
 
         Assert.Null(result);
     }
@@ -59,8 +61,8 @@ public class RedisLocalStorageTests : IDisposable
         {
             ["__keep"] = "keep"
         };
-        await RedisLocalStorage.RedisRecursiveLocalStorage.Create(_redisFactory, "asd");
-        JObject? result = await _redis.GetAsync<JObject>("asd");
+        await RedisRecursiveLocalStorage.Create(_redis, _identity);
+        JObject? result = await _redis.GetAsync<JObject>(_identity.ColonConcat());
 
         Assert.Equal(expect, result);
     }
@@ -68,11 +70,14 @@ public class RedisLocalStorageTests : IDisposable
     [Fact]
     public async Task CreateChild_EmptyStorage_AddChildrenPropertyInStorage()
     {
-        var expect = new List<string>() { "a", "b" };
-        await _recursiveLocalStorage.GetOrCreateChild("a");
-        await _recursiveLocalStorage.GetOrCreateChild("b");
+        var expect = new List<string>() { "100:main:a", "100:main:b" };
+        IRecursiveLocalStorage childA = await _storageFactory.GetOrCreateStorage(_identity.CreateChild("a"));
+        IRecursiveLocalStorage childB = await _storageFactory.GetOrCreateStorage(_identity.CreateChild("b"));
 
-        var result = (await _redis.GetAsync<JObject>(Identity))?["__children"]?.ToObject<List<string>>();
+        await _storage.AddChildStorage(childA);
+        await _storage.AddChildStorage(childB);
+
+        var result = (await _redis.GetAsync<JObject>(_identity.ColonConcat()))?["__children"]?.ToObject<List<string>>();
 
         Assert.Equal(expect, result);
     }
@@ -80,18 +85,20 @@ public class RedisLocalStorageTests : IDisposable
     [Fact]
     public async Task RemoveStorageAndAllItsChildren_StorageGraph_RemoveWholeGraph()
     {
-        IRecursiveLocalStorage child1 = await _recursiveLocalStorage.GetOrCreateChild("child1");
-        IRecursiveLocalStorage child2 = await _recursiveLocalStorage.GetOrCreateChild("child2");
-        await child1.GetOrCreateChild("child1child1");
-        await child1.GetOrCreateChild("child1child2");
+        IRecursiveLocalStorage child1 = await _storageFactory.GetOrCreateStorage(_identity.CreateChild("child1"));
+        IRecursiveLocalStorage child2 = await _storageFactory.GetOrCreateStorage(_identity.CreateChild("child2"));
+        IRecursiveLocalStorage child1child1 = await _storageFactory.GetOrCreateStorage(_identity.CreateChild("child1child1"));
+        IRecursiveLocalStorage child1child2 = await _storageFactory.GetOrCreateStorage(_identity.CreateChild("child1child2"));
 
-        await _recursiveLocalStorage.RemoveStorageAndAllItsChildren();
+        await _storage.AddChildStorage(child1);
+        await _storage.AddChildStorage(child2);
+        await child1.AddChildStorage(child1child1);
+        await child1.AddChildStorage(child1child2);
+
+        await _storage.ClearStorageAndAllItsChildren();
+        List<RedisKey> keys = _redis.Database.Multiplexer.GetServers()[0].Keys().ToList();
         
-        Assert.False(await _redis.ExistsAsync(Identity));
-        Assert.False(await _redis.ExistsAsync("child1"));
-        Assert.False(await _redis.ExistsAsync("child2"));
-        Assert.False(await _redis.ExistsAsync("child1child1"));
-        Assert.False(await _redis.ExistsAsync("child1child2"));
+        Assert.Empty(keys);
     }
 
     public void Dispose()

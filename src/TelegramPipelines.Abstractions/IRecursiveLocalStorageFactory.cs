@@ -2,5 +2,5 @@
 
 public interface IRecursiveLocalStorageFactory
 {
-    public Task<IRecursiveLocalStorage> Create(string storageIdentity);
+    public Task<IRecursiveLocalStorage> GetOrCreateStorage(TelegramPipelineIdentity storageIdentity);
 }

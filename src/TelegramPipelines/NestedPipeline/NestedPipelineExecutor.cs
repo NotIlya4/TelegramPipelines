@@ -21,7 +21,7 @@ public class NestedPipelineExecutor<TParentReturn> : INestedPipelineExecutor
 
     public async Task<TPipelineReturn?> Execute<TPipelineReturn>(string nestedPipelineName, ITelegramPipelineClass<TPipelineReturn> pipeline)
     {
-        return await Execute(nestedPipelineName, pipeline.Handle);
+        return await Execute(nestedPipelineName, pipeline.Execute);
     }
 
     public async Task<TPipelineReturn?> Execute<TPipelineReturn>(ITelegramPipelineClass<TPipelineReturn> pipeline)

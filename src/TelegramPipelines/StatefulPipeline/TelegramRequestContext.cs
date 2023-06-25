@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace TelegramPipelines;
+namespace TelegramPipelines.StatefulPipeline;
 
 public record TelegramRequestContext(TelegramBotClient TelegramBotClient, Update Update);

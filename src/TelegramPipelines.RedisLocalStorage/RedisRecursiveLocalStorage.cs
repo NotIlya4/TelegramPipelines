@@ -6,24 +6,24 @@ namespace TelegramPipelines.RedisLocalStorage;
 public class RedisRecursiveLocalStorage : IRecursiveLocalStorage
 {
     private readonly RedisPrimitiveStorage _primitiveStorage;
-    private readonly RedisStorageRepository _repository;
-    private readonly IRedisClientFactory _redisFactory;
+    private readonly RedisChildStorageRepository _repository;
 
-    private RedisRecursiveLocalStorage(RedisPrimitiveStorage primitiveStorage, RedisStorageRepository repository, IRedisClientFactory redisFactory)
+    private RedisRecursiveLocalStorage(RedisPrimitiveStorage primitiveStorage, RedisChildStorageRepository repository, TelegramPipelineIdentity storageIdentity)
     {
         _primitiveStorage = primitiveStorage;
         _repository = repository;
-        _redisFactory = redisFactory;
+        StorageIdentity = storageIdentity;
     }
 
-    public static async Task<RedisRecursiveLocalStorage> Create(IRedisClientFactory redisFactory, string storageIdentifier)
+    public static async Task<RedisRecursiveLocalStorage> Create(IRedisDatabase redis, TelegramPipelineIdentity storageIdentity)
     {
-        IRedisDatabase redis = redisFactory.GetRedisDatabase();
-        var primitiveStorage = await RedisPrimitiveStorage.Create(redis, storageIdentifier);
-        var storageRepository = new RedisStorageRepository(redis);
+        var primitiveStorage = await RedisPrimitiveStorage.Create(redis, storageIdentity.ColonConcat());
+        var storageRepository = new RedisChildStorageRepository(primitiveStorage);
 
-        return new RedisRecursiveLocalStorage(primitiveStorage, storageRepository, redisFactory);
+        return new RedisRecursiveLocalStorage(primitiveStorage, storageRepository, storageIdentity);
     }
+
+    public TelegramPipelineIdentity StorageIdentity { get; }
     
     public async Task Save<T>(string key, T o) where T : class
     {
@@ -40,22 +40,13 @@ public class RedisRecursiveLocalStorage : IRecursiveLocalStorage
         await _primitiveStorage.Remove(key);
     }
 
-    public string StorageIdentity => _primitiveStorage.StorageIdentifier;
-
-    public async Task RemoveStorageAndAllItsChildren()
+    public async Task ClearStorageAndAllItsChildren()
     {
-        await _repository.RemoveStorageAndAllItsChildren(_primitiveStorage.StorageIdentifier);
+        await _repository.ClearStorageRecursive();
     }
 
-    public async Task<IRecursiveLocalStorage> GetOrCreateChild(string childStorageIdentifier)
+    public async Task AddChildStorage(IRecursiveLocalStorage newChildStorage)
     {
-        await _repository.CreateChildStorage(_primitiveStorage.StorageIdentifier, childStorageIdentifier);
-
-        var childRedisDatabase = _redisFactory.GetDefaultRedisDatabase();
-        var childPrimitiveStorage =
-            await RedisPrimitiveStorage.Create(childRedisDatabase, childStorageIdentifier);
-        var childStorageRepository = new RedisStorageRepository(childRedisDatabase);
-
-        return new RedisRecursiveLocalStorage(childPrimitiveStorage, childStorageRepository, _redisFactory);
+        await _repository.AddChild(newChildStorage.StorageIdentity);
     }
 }

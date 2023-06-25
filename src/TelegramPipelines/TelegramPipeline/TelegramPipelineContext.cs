@@ -2,6 +2,7 @@
 using Telegram.Bot.Types;
 using TelegramPipelines.Abstractions;
 using TelegramPipelines.NestedPipeline;
+using TelegramPipelines.StatefulPipeline;
 
 namespace TelegramPipelines.TelegramPipeline;
 

@@ -13,8 +13,8 @@ public class RedisRecursiveLocalStorageFactory : IRecursiveLocalStorageFactory
     }
 
 
-    public async Task<IRecursiveLocalStorage> Create(string storageIdentity)
+    public async Task<IRecursiveLocalStorage> GetOrCreateStorage(TelegramPipelineIdentity storageIdentity)
     {
-        return await RedisRecursiveLocalStorage.Create(_redisFactory, storageIdentity);
+        return await RedisRecursiveLocalStorage.Create(_redisFactory.GetDefaultRedisDatabase(), storageIdentity);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace TelegramPipelines.LocalStorage;
+﻿using TelegramPipelines.Abstractions;
+
+namespace TelegramPipelines.NestedPipeline;
 
 public interface ITelegramPipelineIdentitySerializer
 {

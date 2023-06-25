@@ -2,6 +2,7 @@
 
 public interface IRecursiveLocalStorage : ITelegramPipelineLocalStorage
 {
-    Task RemoveStorageAndAllItsChildren();
-    Task<IRecursiveLocalStorage> GetOrCreateChild(string childStorageIdentifier);
+    public TelegramPipelineIdentity StorageIdentity { get; }
+    Task ClearStorageAndAllItsChildren();
+    Task AddChildStorage(IRecursiveLocalStorage newChildStorage);
 }

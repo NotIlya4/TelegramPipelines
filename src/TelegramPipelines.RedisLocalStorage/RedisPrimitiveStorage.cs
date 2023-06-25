@@ -5,13 +5,13 @@ namespace TelegramPipelines.RedisLocalStorage;
 
 internal class RedisPrimitiveStorage
 {
-    private readonly IRedisDatabase _redis;
-    public string StorageIdentifier { get; }
+    public IRedisDatabase Redis { get; }
+    public string StorageIdentity { get; }
 
-    private RedisPrimitiveStorage(IRedisDatabase redis, string storageIdentifier)
+    private RedisPrimitiveStorage(IRedisDatabase redis, string storageIdentity)
     {
-        _redis = redis;
-        StorageIdentifier = storageIdentifier;
+        Redis = redis;
+        StorageIdentity = storageIdentity;
     }
 
     public static async Task<RedisPrimitiveStorage> Create(IRedisDatabase redis, string storageIdentifier)
@@ -43,16 +43,16 @@ internal class RedisPrimitiveStorage
 
     public async Task DeleteStorage()
     {
-        await _redis.RemoveAsync(StorageIdentifier);
+        await Redis.RemoveAsync(StorageIdentity);
     }
 
     private async Task<JObject> GetStorage()
     {
-        return await _redis.GetAsync<JObject>(StorageIdentifier) ?? new JObject();
+        return await Redis.GetAsync<JObject>(StorageIdentity) ?? new JObject();
     }
 
     private async Task SaveStorage(JObject storage)
     {
-        await _redis.AddAsync(StorageIdentifier, storage);
+        await Redis.AddAsync(StorageIdentity, storage);
     }
 }
