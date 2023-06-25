@@ -11,11 +11,19 @@ public class JObjectPrimitiveStorage
     {
         StorageIdentity = storageIdentity;
         StorageRoot = storageRoot;
+
+        JObject? storage = StorageRoot[StorageIdentity]?.ToObject<JObject>();
+        if (storage is null)
+        {
+            StorageRoot[StorageIdentity] = new JObject();
+        }
     }
     
     public void Save<T>(string key, T o) where T : class
     {
-        GetStorage()[key] = JToken.FromObject(o);
+        JObject storage = GetStorage();
+        storage[key] = JToken.FromObject(o);
+        SaveStorage(storage);
     }
 
     public T? Get<T>(string key) where T : class
@@ -25,11 +33,18 @@ public class JObjectPrimitiveStorage
 
     public void Remove(string key)
     {
-        GetStorage().Remove(key);
+        JObject storage = GetStorage();
+        storage.Remove(key);
+        SaveStorage(storage);
     }
     
     public JObject GetStorage()
     {
-        return StorageRoot[StorageIdentity]?.ToObject<JObject>() ?? new JObject();
+        return StorageRoot[StorageIdentity]?.ToObject<JObject>()!;
+    }
+
+    public void SaveStorage(JObject storage)
+    {
+        StorageRoot[StorageIdentity] = storage;
     }
 }

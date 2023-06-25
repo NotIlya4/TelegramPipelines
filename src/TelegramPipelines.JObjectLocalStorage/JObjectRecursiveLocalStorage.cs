@@ -9,9 +9,9 @@ public class JObjectRecursiveLocalStorage : IRecursiveLocalStorage
     public TelegramPipelineIdentity StorageIdentity { get; }
     private const string ChildrenKey = "__children";
 
-    public JObjectRecursiveLocalStorage(JObjectPrimitiveStorage primitiveStorage, TelegramPipelineIdentity storageIdentity)
+    public JObjectRecursiveLocalStorage(JObject storageRoot, TelegramPipelineIdentity storageIdentity)
     {
-        _primitiveStorage = primitiveStorage;
+        _primitiveStorage = new JObjectPrimitiveStorage(storageIdentity.ColonConcat(), storageRoot);
         StorageIdentity = storageIdentity;
     }
 
