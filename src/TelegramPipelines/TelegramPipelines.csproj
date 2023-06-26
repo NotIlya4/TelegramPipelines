@@ -18,6 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\TelegramPipelines.Abstractions\TelegramPipelines.Abstractions.csproj" />
+      <ProjectReference Include="..\TelegramPipelines.RedisLocalStorage\TelegramPipelines.RedisLocalStorage.csproj" />
     </ItemGroup>
 
 </Project>

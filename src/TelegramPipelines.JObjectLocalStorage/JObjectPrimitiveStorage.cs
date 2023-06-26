@@ -2,7 +2,7 @@
 
 namespace TelegramPipelines.JObjectLocalStorage;
 
-public class JObjectPrimitiveStorage
+internal class JObjectPrimitiveStorage
 {
     public string StorageIdentity { get; }
     public JObject StorageRoot { get; }
