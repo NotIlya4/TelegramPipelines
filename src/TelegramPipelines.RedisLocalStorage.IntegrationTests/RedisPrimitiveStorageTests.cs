@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
+using StackExchange.Redis;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using TelegramPipelines.RedisLocalStorage;
 
@@ -17,7 +18,7 @@ public class RedisPrimitiveStorageTests : IDisposable
     {
         _scope = fixture.Services.CreateScope();
         _redis = fixture.Services.GetRequiredService<IRedisDatabase>();
-        _storage = RedisPrimitiveStorage.Create(_redis, Identity).GetAwaiter().GetResult();
+        _storage = RedisPrimitiveStorage.Create(_redis.Database, Identity).GetAwaiter().GetResult();
         _redis.FlushDbAsync();
     }
 
@@ -79,7 +80,7 @@ public class RedisPrimitiveStorageTests : IDisposable
             ["__keep"] = "keep"
         };
         
-        await RedisPrimitiveStorage.Create(_redis, "asd");
+        await RedisPrimitiveStorage.Create(_redis.Database, "asd");
         
         Assert.Equal(expect, await _redis.GetAsync<JObject>("asd"));
     }

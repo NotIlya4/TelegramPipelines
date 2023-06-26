@@ -14,13 +14,13 @@ IHost host = Host.CreateDefaultBuilder(args)
         string redisConn = context.Configuration.GetRedisConnectionString("Redis");
         string telegramApiKey = context.Configuration.GetRequiredValue("TelegramApiKey");
 
-        services.AddTelegramPipelinesWorker();
-        services.AddTelegramMainPipelineDelegate(async context =>
-        {
-            await context.NestedPipelineExecutor.Execute("biba", new NumbersAccumulatorPipeline("bibochka"));
-            return null;
-        });
-        services.AddRecursiveLocalStorageFactory<RedisRecursiveLocalStorageFactory>();
+        services.AddTelegramPipelinesWorker()
+            .AddTelegramMainPipelineDelegate(async context => 
+            { 
+                await context.NestedPipelineExecutor.Execute("biba", new NumbersAccumulatorPipeline("bibochka")); 
+                return null; 
+            })
+            .AddRecursiveLocalStorageFactory<RedisRecursiveLocalStorageFactory>();
         
         services.AddSerilog(context.Configuration.GetAddSerilogOptions("Serilog"));
         services.AddSingleton(new TelegramOptions(redisConn, telegramApiKey));

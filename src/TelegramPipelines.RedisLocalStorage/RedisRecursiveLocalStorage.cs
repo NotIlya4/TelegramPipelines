@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis.Extensions.Core.Abstractions;
+﻿using StackExchange.Redis;
+using StackExchange.Redis.Extensions.Core.Abstractions;
 using TelegramPipelines.Abstractions;
 
 namespace TelegramPipelines.RedisLocalStorage;
@@ -15,7 +16,7 @@ public class RedisRecursiveLocalStorage : IRecursiveLocalStorage
         StorageIdentity = storageIdentity;
     }
 
-    public static async Task<RedisRecursiveLocalStorage> Create(IRedisDatabase redis, TelegramPipelineIdentity storageIdentity)
+    public static async Task<RedisRecursiveLocalStorage> Create(IDatabase redis, TelegramPipelineIdentity storageIdentity)
     {
         var primitiveStorage = await RedisPrimitiveStorage.Create(redis, storageIdentity.ColonConcat());
         var storageRepository = new RedisChildStorageRepository(primitiveStorage);

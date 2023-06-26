@@ -1,20 +1,21 @@
-﻿using StackExchange.Redis.Extensions.Core.Abstractions;
+﻿using StackExchange.Redis;
+using StackExchange.Redis.Extensions.Core.Abstractions;
 using TelegramPipelines.Abstractions;
 
 namespace TelegramPipelines.RedisLocalStorage;
 
 public class RedisRecursiveLocalStorageFactory : IRecursiveLocalStorageFactory
 {
-    private readonly IRedisClientFactory _redisFactory;
+    private readonly ConnectionMultiplexer _multiplexer;
 
-    public RedisRecursiveLocalStorageFactory(IRedisClientFactory redisFactory)
+    public RedisRecursiveLocalStorageFactory(ConnectionMultiplexer multiplexer)
     {
-        _redisFactory = redisFactory;
+        _multiplexer = multiplexer;
     }
 
 
     public async Task<IRecursiveLocalStorage> GetOrCreateStorage(TelegramPipelineIdentity storageIdentity)
     {
-        return await RedisRecursiveLocalStorage.Create(_redisFactory.GetDefaultRedisDatabase(), storageIdentity);
+        return await RedisRecursiveLocalStorage.Create(_multiplexer.GetDatabase(), storageIdentity);
     }
 }

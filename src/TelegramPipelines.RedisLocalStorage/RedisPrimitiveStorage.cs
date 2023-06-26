@@ -1,20 +1,21 @@
 ﻿using Newtonsoft.Json.Linq;
+using StackExchange.Redis;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 
 namespace TelegramPipelines.RedisLocalStorage;
 
 internal class RedisPrimitiveStorage
 {
-    public IRedisDatabase Redis { get; }
+    public IDatabase Redis { get; }
     public string StorageIdentity { get; }
 
-    private RedisPrimitiveStorage(IRedisDatabase redis, string storageIdentity)
+    private RedisPrimitiveStorage(IDatabase redis, string storageIdentity)
     {
         Redis = redis;
         StorageIdentity = storageIdentity;
     }
 
-    public static async Task<RedisPrimitiveStorage> Create(IRedisDatabase redis, string storageIdentifier)
+    public static async Task<RedisPrimitiveStorage> Create(IDatabase redis, string storageIdentifier)
     {
         var instance = new RedisPrimitiveStorage(redis, storageIdentifier);
         await instance.Save("__keep", "keep");
@@ -43,16 +44,17 @@ internal class RedisPrimitiveStorage
 
     public async Task DeleteStorage()
     {
-        await Redis.RemoveAsync(StorageIdentity);
+        await Redis.KeyDeleteAsync(StorageIdentity);
     }
 
     private async Task<JObject> GetStorage()
     {
-        return await Redis.GetAsync<JObject>(StorageIdentity) ?? new JObject();
+        string? rawStorage = await Redis.StringGetAsync(StorageIdentity);
+        return rawStorage is null ? new JObject() : JObject.Parse(rawStorage);
     }
 
     private async Task SaveStorage(JObject storage)
     {
-        await Redis.AddAsync(StorageIdentity, storage);
+        await Redis.StringSetAsync(StorageIdentity, storage.ToString());
     }
 }

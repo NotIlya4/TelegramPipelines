@@ -36,7 +36,7 @@ public class RedisStorageRepositoryTests : IDisposable
         _scope = fixture.Services.CreateScope();
         _redis = _scope.ServiceProvider.GetRequiredService<IRedisDatabase>();
         _identity = new TelegramPipelineIdentity(100, new[] { "main" });
-        _storage = RedisPrimitiveStorage.Create(_redis, _identity.ColonConcat()).GetAwaiter().GetResult();
+        _storage = RedisPrimitiveStorage.Create(_redis.Database, _identity.ColonConcat()).GetAwaiter().GetResult();
         _repository = new RedisChildStorageRepository(_storage);
     }
 
