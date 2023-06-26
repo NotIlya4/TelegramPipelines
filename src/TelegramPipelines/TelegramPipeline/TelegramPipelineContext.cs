@@ -11,7 +11,7 @@ public record TelegramPipelineContext(
     ITelegramPipelineLocalStorage LocalStorage,
     INestedPipelineExecutor NestedPipelineExecutor,
     Update Update,
-    TelegramBotClient TelegramBotClient)
+    ITelegramBotClient TelegramBotClient)
 {
     public TelegramPipelineContext(
         TelegramPipelineIdentity pipelineIdentity,

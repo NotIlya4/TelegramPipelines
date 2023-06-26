@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-TelegramPipelines.Demo-FBB003B6-077C-4F58-AEC9-AC5B0D313313</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+        <PackageReference Include="NotIlya.Extensions" Version="3.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TelegramPipelines.RedisLocalStorage\TelegramPipelines.RedisLocalStorage.csproj" />
+      <ProjectReference Include="..\TelegramPipelines\TelegramPipelines.csproj" />
+    </ItemGroup>
+</Project>

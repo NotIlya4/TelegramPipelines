@@ -16,8 +16,8 @@ public class TelegramPipelinesEntry
         _recursiveLocalStorageFactory = recursiveLocalStorageFactory;
     }
 
-    public async Task<TPipelineReturn?> Execute<TPipelineReturn>(TelegramBotClient telegramBotClient, Update update,
-        ITelegramPipelineClass<TPipelineReturn> mainPipeline)
+    public async Task<TPipelineReturn?> Execute<TPipelineReturn>(ITelegramBotClient telegramBotClient, Update update,
+        TelegramPipelineDelegate<TPipelineReturn> mainPipeline)
     {
         long chatId = update switch
         {
@@ -32,11 +32,17 @@ public class TelegramPipelinesEntry
         
         var statefulPipeline = new StatefulTelegramPipeline<TPipelineReturn>(
             identity,
-            mainPipeline.Execute,
+            mainPipeline,
             await _recursiveLocalStorageFactory.GetOrCreateStorage(identity),
             new TelegramRequestContext(telegramBotClient, update), 
             _recursiveLocalStorageFactory);
 
         return await statefulPipeline.Execute();
+    }
+
+    public async Task<TPipelineReturn?> Execute<TPipelineReturn>(ITelegramBotClient telegramBotClient, Update update,
+        ITelegramPipelineClass<TPipelineReturn> mainPipeline)
+    {
+        return await Execute(telegramBotClient, update, mainPipeline.Execute);
     }
 }

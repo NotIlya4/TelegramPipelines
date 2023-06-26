@@ -38,7 +38,7 @@ public record StatefulTelegramPipeline<TPipelineReturn> : IWrappedTelegramPipeli
             throw;
         }
 
-        if (result is null)
+        if (result is not null)
         {
             await Storage.ClearStorageAndAllItsChildren();
         }
