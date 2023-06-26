@@ -57,7 +57,7 @@ You can run nested pipelines inside pipelines, it will create tree dependency be
 ```csharp
 async context => 
 { 
-    await context.NestedPipelineExecutor.Execute("biba", new NumbersAccumulatorPipeline("bibochka")); 
+    await context.NestedPipelineExecutor.Execute("biba", new NumbersAccumulatorPipeline()); 
     return null; 
 }
 ```
@@ -74,7 +74,7 @@ async context =>
 ```csharp
 async context => 
 {  
-    await context.NestedPipelineExecutor.Execute("biba", new NumbersAccumulatorPipeline("bibochka"));
+    await context.NestedPipelineExecutor.Execute("biba", new NumbersAccumulatorPipeline());
     // Returned not null so storage will be cleared and all nested pipelines storages will be cleared too
     return ""; 
 }
