@@ -67,6 +67,8 @@ Pipelines has a lifetime. When pipeline returns not null value it means that pip
 ```csharp
 async context => 
 {  
+    // ↓ This will not be cleared
+    await context.NestedPipelineExecutor.Execute("biba", new NumbersAccumulatorPipeline());
     // Pipeline not finished. Storage remain
     return null; 
 }
@@ -74,9 +76,19 @@ async context =>
 ```csharp
 async context => 
 {  
+    // ↓ This will be cleared
     await context.NestedPipelineExecutor.Execute("biba", new NumbersAccumulatorPipeline());
     // Returned not null so storage will be cleared and all nested pipelines storages will be cleared too
     return ""; 
+}
+```
+```csharp
+async context => 
+{  
+    // ↓ This will be cleared
+    await context.NestedPipelineExecutor.Execute("biba", new NumbersAccumulatorPipeline());
+    // Throw exception so storage will be cleared and all nested pipelines storages will be cleared too
+    throw new Exception();
 }
 ```
 
