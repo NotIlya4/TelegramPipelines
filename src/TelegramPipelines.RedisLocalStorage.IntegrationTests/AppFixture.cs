@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NotIlya.Extensions.Redis;
+using StackExchange.Redis;
 
 namespace TelegramPipelines.UnitTests;
 
@@ -18,5 +19,6 @@ public class AppFixture : ICollectionFixture<AppFixture>
         services.AddLogging();
         services.AddRedis(config.GetRedisConnectionString("Redis"));
         Services = services.BuildServiceProvider();
+        Services.GetRequiredService<IDatabase>().Multiplexer.GetServers()[0].FlushDatabase();
     }
 }
