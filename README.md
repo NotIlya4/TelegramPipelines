@@ -28,8 +28,8 @@ services.AddTelegramPipelinesWorker();
 But you need to provide `IRecursiveLocalStorageFactory` and main pipeline using:
 ```csharp
 services.AddTelegramPipelinesWorker()
-            .AddTelegramMainPipeline<MyMainPipeline>()
-            .AddRecursiveLocalStorageFactory<RedisRecursiveLocalStorageFactory>();
+    .AddTelegramMainPipeline<MyMainPipeline>()
+    .AddRecursiveLocalStorageFactory<RedisRecursiveLocalStorageFactory>();
 ```
 
 ## Pipelines
