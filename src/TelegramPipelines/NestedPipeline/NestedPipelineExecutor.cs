@@ -28,4 +28,10 @@ public class NestedPipelineExecutor<TParentReturn> : INestedPipelineExecutor
     {
         return await Execute(pipeline.GetType().FullName!, pipeline);
     }
+
+    public async Task Abort(string nestedPipelineName)
+    {
+        var pipelineToAbort = await _parentPipeline.CreateChild(nestedPipelineName, async _ => "");
+        await pipelineToAbort.Abort();
+    }
 }

@@ -11,4 +11,6 @@ public interface INestedPipelineExecutor
         ITelegramPipelineClass<TPipelineReturn> pipeline);
 
     Task<TPipelineReturn?> Execute<TPipelineReturn>(ITelegramPipelineClass<TPipelineReturn> pipeline);
+
+    Task Abort(string nestedPipelineName);
 }

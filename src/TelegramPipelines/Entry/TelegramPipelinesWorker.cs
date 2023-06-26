@@ -9,17 +9,17 @@ using TelegramPipelines.TelegramPipeline;
 
 namespace TelegramPipelines.Entry;
 
-public class TelegramPipelinesBackgroundService : BackgroundService
+public class TelegramPipelinesWorker : BackgroundService
 {
     private readonly IRecursiveLocalStorageFactory _storageFactory;
-    private readonly ILogger<TelegramPipelinesBackgroundService> _logger;
-    private readonly TelegramPipelineDelegate<MainPipelineFinished> _mainPipeline;
+    private readonly ILogger<TelegramPipelinesWorker> _logger;
+    private readonly WorkerMainPipeline _mainPipeline;
 
-    public TelegramPipelinesBackgroundService(
+    public TelegramPipelinesWorker(
         ITelegramBotClient bot, 
         IRecursiveLocalStorageFactory storageFactory, 
-        ILogger<TelegramPipelinesBackgroundService> logger, 
-        TelegramPipelineDelegate<MainPipelineFinished> mainPipeline)
+        ILogger<TelegramPipelinesWorker> logger, 
+        WorkerMainPipeline mainPipeline)
     {
         _storageFactory = storageFactory;
         _logger = logger;
@@ -35,7 +35,7 @@ public class TelegramPipelinesBackgroundService : BackgroundService
     private async Task Update(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
         var entry = new TelegramPipelinesEntry(_storageFactory);
-        await entry.Execute(client, update, _mainPipeline);
+        await entry.Execute(client, update, _mainPipeline.CreateMainPipeline());
     }
     
     private async Task Error(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
