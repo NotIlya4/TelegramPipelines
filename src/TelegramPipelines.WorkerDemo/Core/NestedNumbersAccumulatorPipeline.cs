@@ -19,6 +19,7 @@ public class NestedNumbersAccumulatorPipeline : ITelegramPipelineClass<Accumulat
         await context.TelegramBotClient.SendTextMessageAsync(context.Update.Message!.Chat, $"{_name}, {acc.Value}");
 
         acc = acc with { Value = acc.Value + 1 };
+        
         await context.LocalStorage.Save("acc", acc);
 
         return null;
