@@ -13,6 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\TelegramPipelines.JObjectLocalStorage\TelegramPipelines.JObjectLocalStorage.csproj" />
       <ProjectReference Include="..\TelegramPipelines.RedisLocalStorage\TelegramPipelines.RedisLocalStorage.csproj" />
       <ProjectReference Include="..\TelegramPipelines\TelegramPipelines.csproj" />
     </ItemGroup>

@@ -13,12 +13,9 @@ Its expected that you would nest pipelines for building more complex pipelines, 
 Install:
 ```
 $ dotnet add package TelegramPipelines
-```
-```
 $ dotnet add package TelegramPipelines.Abstractions
-```
-```
 $ dotnet add package TelegramPipelines.RedisLocalStorage
+$ dotnet add package TelegramPipelines.JObjectLocalStorage
 ```
 
 Add background service using extension method:
